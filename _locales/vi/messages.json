@@ -1,0 +1,8 @@
+{
+  "appName": {
+    "message": "Auth Proxy – Chuyển đổi Proxy nhanh"
+  },
+  "appDesc": {
+    "message": "Bật/tắt proxy HTTP/HTTPS nhanh chóng với hỗ trợ xác thực. Quản lý danh sách proxy, chuyển đổi một chạm, tự động phát hiện IP hiện tại."
+  }
+}

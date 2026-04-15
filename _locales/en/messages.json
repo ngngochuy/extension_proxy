@@ -1,0 +1,8 @@
+{
+  "appName": {
+    "message": "Auth Proxy - Quick Proxy Switcher"
+  },
+  "appDesc": {
+    "message": "Quickly enable/disable HTTP/HTTPS proxy with authentication. Manage proxy list, one-click switch, auto-detect IP."
+  }
+}

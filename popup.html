@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <div class="noise" style="
+        position: fixed;
+        inset: 0;
+        background: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E&quot;);
+        pointer-events: none;
+        z-index: 0;
+      "></div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon" style="
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: var(--bg-surface);
+          ">
+        <img src="assets/icon48.png" style="
+              width: 100%;
+              height: 100%;
+              display: block;
+              object-fit: cover;
+              border-radius: inherit;
+            " alt="Logo" />
+      </div>
+      <div class="header-text">
+        <h1>Auth Proxy</h1>
+        <div class="sub">Công cụ bởi Nguyễn Ngọc Huy</div>
+      </div>
+      <span class="version-badge">v1.3</span>
+    </div>
+
+    <!-- Status -->
+    <div id="statusCard" class="status-card inactive">
+      <div class="status-dot"></div>
+      <div class="status-info">
+        <div class="status-label">Trạng thái</div>
+        <div id="statusValue" class="status-value">Đang kiểm tra...</div>
+        <div id="statusProxy" class="status-proxy-info"></div>
+      </div>
+    </div>
+
+    <!-- Network Status -->
+    <div class="network-card">
+      <div class="net-header">
+        <div class="net-title">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+          </svg>
+          <span>Network</span>
+        </div>
+        <div id="netPing" class="net-ping" style="display: none">
+          <span class="ping-dot"></span><span id="pingValue"></span>
+        </div>
+      </div>
+
+      <div class="net-body">
+        <div id="ipSpinner" class="ip-spinner"></div>
+        <div id="netContent" class="net-content" style="display: none">
+          <img id="netFlag" class="net-flag" src="" alt="" />
+          <div class="net-info">
+            <span id="ipValue" class="ip-value"></span>
+            <span id="ipCountry" class="ip-country"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proxy List -->
+    <div class="glass-card">
+      <div class="section-label">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z" />
+        </svg>
+        Danh sách Proxy
+        <span id="proxyCount" class="count">0</span>
+      </div>
+
+      <!-- Add input -->
+      <div class="add-row">
+        <input id="txtAddProxy" type="text" placeholder="Nhập ip:port:user:pass hoặc ip:port" spellcheck="false"
+          autocomplete="off" />
+        <button id="btnAdd" class="btn-add" title="Thêm proxy">+</button>
+      </div>
+
+      <div class="input-hints">
+        <div class="input-hint">
+          Định dạng: <code>ip:port</code> hoặc <code>ip:port:user:pass</code>
+        </div>
+      </div>
+
+      <!-- List -->
+      <div id="proxyList" class="proxy-list">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+          </svg>
+          <p>Chưa có proxy nào</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WebRTC Shield -->
+    <div class="glass-card" style="padding: 10px 12px; margin-bottom: 0px">
+      <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          ">
+        <div style="display: flex; align-items: center; gap: 6px">
+          <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: var(--text-muted)">
+            <path
+              d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+          </svg>
+          <label for="chkWebRTC" style="
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+                cursor: pointer;
+              ">Màng lưới tàng hình WebRTC</label>
+        </div>
+        <label class="switch" title="Chống dò IP thật qua WebRTC">
+          <input type="checkbox" id="chkWebRTC" checked />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div style="
+            font-size: 9.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding-left: 19px;
+          ">
+        Ép WebRTC đi qua Proxy. Ngăn 100% dò mảnh IP nội bộ.
+      </div>
+    </div>
+
+    <!-- Antidetect Spoofing -->
+    <div class="glass-card" style="padding: 10px 12px; margin-bottom: 8px">
+      <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          ">
+        <div style="display: flex; align-items: center; gap: 6px">
+          <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: var(--text-muted)">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" />
+          </svg>
+          <label for="chkSpoofing" style="
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+                cursor: pointer;
+              ">Antidetect Múi Giờ & Ngôn Ngữ</label>
+        </div>
+        <label class="switch" title="Chống lộ vân tay trình duyệt">
+          <input type="checkbox" id="chkSpoofing" checked />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div style="
+            font-size: 9.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding-left: 19px;
+            margin-bottom: 8px;
+          ">
+        Tự đồng bộ cấu hình máy 100% theo IP quốc gia của Proxy.
+      </div>
+
+      <!-- GPS Toggle Container Inside -->
+      <div
+        style="display: flex; flex-direction: column; width: 100%; border-top: 1px solid var(--glass-border); padding-top: 8px;">
+        <!-- GPS Location -->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 6px">
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: var(--text-muted)">
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+            </svg>
+            <label for="chkGps"
+              style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin: 0; cursor: pointer;">Mô
+              phỏng Vị trí GPS (Tọa độ)</label>
+          </div>
+          <label class="switch" title="Fake Tọa độ Latitude/Longitude">
+            <input type="checkbox" id="chkGps" checked />
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <!-- GPS Altitude -->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px">
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: var(--text-muted)">
+              <path
+                d="M14 6l-4.22 5.63 1.25 1.67L14 9.33 19 16h-8.46l-4.01-5.37L1 18h22L14 6zM5 16l1.52-2.03L8.04 16H5z" />
+            </svg>
+            <label for="chkAlt"
+              style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin: 0; cursor: pointer;">Mô
+              phỏng Độ cao (Altitude)</label>
+          </div>
+          <label class="switch" title="Fake Altitude">
+            <input type="checkbox" id="chkAlt" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 6px; padding-left: 19px;">Mô phỏng API bản
+          đồ. Tắt bằng mặc định để tối ưu.</div>
+      </div>
+    </div>
+
+    <!-- Whitelist Settings -->
+    <div class="glass-card">
+      <div class="section-label" style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          ">
+        <div style="display: flex; align-items: center; gap: 6px">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" />
+          </svg>
+          <label for="chkWhitelist" style="cursor: pointer; margin: 0">Chỉ Fake IP Các Web Sau</label>
+          <label class="switch" title="Bật/Tắt Whitelist">
+            <input type="checkbox" id="chkWhitelist" checked />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <button id="btnImportRule" class="btn-import">Tải Rule URL</button>
+      </div>
+      <textarea id="txtWhitelist"
+        placeholder="Ví dụ: spotify.com, netflix.com&#10;(Để trống = Dùng Proxy cho tất cả máy)" rows="8"
+        class="whitelist-input"></textarea>
+      <div style="
+            font-size: 10.5px;
+            color: var(--success);
+            margin-top: 8px;
+            text-align: center;
+            opacity: 0.85;
+            font-weight: 500;
+          ">
+        Thích hợp để ngâm tích xanh.
+      </div>
+    </div>
+
+    <!-- Sticky Bottom Wrapper -->
+    <div class="sticky-bottom">
+      <!-- Actions -->
+      <div class="actions">
+        <button id="btnApply" class="btn btn-primary" disabled>
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+          </svg>
+          Bật Proxy
+        </button>
+        <button id="btnDisable" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z" />
+          </svg>
+          Tắt Proxy
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <span>Viết bởi <strong>Nguyễn Ngọc Huy</strong> &middot; HTTP/HTTPS
+          Proxy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="msgToast" class="message-toast">
+    <svg id="msgIcon" viewBox="0 0 24 24"></svg>
+    <span id="msgText"></span>
+  </div>
+
+  <!-- Custom Context Menu -->
+  <div id="ctxMenu" class="ctx-menu">
+    <button data-action="copy">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+      </svg>
+      Copy proxy
+    </button>
+    <button data-action="copyip">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+      </svg>
+      Copy IP:Port
+    </button>
+    <div class="ctx-divider"></div>
+    <button data-action="delete" class="ctx-danger">
+      <svg viewBox="0 0 24 24">
+        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+      </svg>
+      Xóa proxy
+    </button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>
